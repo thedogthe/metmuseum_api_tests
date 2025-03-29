@@ -1,0 +1,42 @@
+from typing import List, Optional
+from pydantic import BaseModel, HttpUrl
+
+class Constituent(BaseModel):
+    constituentID: Optional[int]
+    role: Optional[str]
+    name: Optional[str]
+    constituentULAN_URL: Optional[HttpUrl]
+    constituentWikidata_URL: Optional[HttpUrl]
+    gender: Optional[str]
+
+class MetMuseumObject(BaseModel):
+    objectID: int
+    isHighlight: Optional[bool]
+    accessionNumber: Optional[str]
+    accessionYear: Optional[str]
+    isPublicDomain: Optional[bool]
+    primaryImage: Optional[HttpUrl]
+    primaryImageSmall: Optional[HttpUrl]
+    additionalImages: Optional[List[HttpUrl]]
+    constituents: Optional[List[Constituent]]
+    department: Optional[str]
+    objectName: Optional[str]
+    title: Optional[str]
+    culture: Optional[str]
+    period: Optional[str]
+    dynasty: Optional[str]
+    reign: Optional[str]
+    portfolio: Optional[str]
+    artistDisplayName: Optional[str]
+    artistDisplayBio: Optional[str]
+    artistNationality: Optional[str]
+    objectDate: Optional[str]
+    objectBeginDate: Optional[int]
+    objectEndDate: Optional[int]
+    medium: Optional[str]
+    dimensions: Optional[str]
+    creditLine: Optional[str]
+    country: Optional[str]
+    classification: Optional[str]
+    linkResource: Optional[HttpUrl]
+    objectURL: Optional[HttpUrl]
