@@ -37,7 +37,7 @@ pytest-asyncio: для работы с асинхронными тестами (
 
 ## Пример структуры проекта
 
-metmuseum-api-tests/
+```metmuseum-api-tests/
 ├── models/
 │   ├── object.py            # Модель объекта искусства
 │   ├── objects.py           # Модель списка объектов
@@ -50,3 +50,4 @@ metmuseum-api-tests/
 ├── utils/
 │   └── api_client.py        # Клиент для работы с API
 └── pyproject.toml           # Конфигурация проекта
+```
