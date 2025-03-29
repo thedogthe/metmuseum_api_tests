@@ -51,3 +51,11 @@ pytest-asyncio: для работы с асинхронными тестами (
 │   └── api_client.py        # Клиент для работы с API
 └── pyproject.toml           # Конфигурация проекта
 ```
+
+## Результат
+
+![alt text](image.png)
+
+## TODO
+
+Добавить поддержку Allure Report
