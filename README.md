@@ -54,8 +54,10 @@ pytest-asyncio: для работы с асинхронными тестами (
 
 ## Результат
 
-![alt text](image.png)
+![alt text](docs/image.png)
+
+![alt text](docs/dashbord.png)
 
 ## TODO
 
-Добавить поддержку Allure Report
+Fix test
