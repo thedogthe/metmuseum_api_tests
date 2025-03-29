@@ -1,4 +1,4 @@
-# tests/test_departments.py
+# TODO комметнарии 
 import pytest
 import allure
 from metmuseum_api_tests.utils.api_client import MetMuseumApiClient
