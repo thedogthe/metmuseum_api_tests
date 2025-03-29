@@ -21,7 +21,7 @@ def test_get_departments(api_client):
     assert isinstance(first_dept.displayName, str)
 
 def test_department_integration(api_client):
-    # Интеграционный тест: получаем департаменты и затем объекты из первого департамента
+    """Получаем департаменты и затем объекты из первого департамента"""
     dept_response = api_client.get_departments()
     departments = DepartmentsResponse(**dept_response.json())
     first_dept_id = departments.departments[0].departmentId

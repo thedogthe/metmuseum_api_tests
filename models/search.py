@@ -2,7 +2,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 
 
-# Модель для параметров запроса (опционально, если нужно валидировать входные параметры)
+# Модель для параметров запроса 
 class SearchRequestParams(BaseModel):
     q: Optional[str] = None
     isHighlight: Optional[bool] = None
@@ -11,9 +11,9 @@ class SearchRequestParams(BaseModel):
     departmentId: Optional[int] = None
     isOnView: Optional[bool] = None
     artistOrCulture: Optional[bool] = None
-    medium: Optional[str] = None  # Можно было бы сделать List[str] с кастомным валидатором
+    medium: Optional[str] = None  # Можно было бы List[str] с кастомным валидатором
     hasImages: Optional[bool] = None
-    geoLocation: Optional[str] = None  # Можно было бы сделать List[str] с кастомным валидатором
+    geoLocation: Optional[str] = None  # Можно было бы List[str] с кастомным валидатором
     dateBegin: Optional[int] = None
     dateEnd: Optional[int] = None
 

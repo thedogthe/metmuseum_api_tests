@@ -1,4 +1,3 @@
-# metmuseum_api_tests/utils/api_client.py
 import logging
 import requests
 from typing import Optional, Dict, Any

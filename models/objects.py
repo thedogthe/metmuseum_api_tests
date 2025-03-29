@@ -7,8 +7,7 @@ class ObjectIDsResponse(BaseModel):
     total: int
     objectIDs: List[int] = []
 
-
-# Модель для параметров запроса (если нужно валидировать входные параметры)
+# Модель для параметров запроса
 class ObjectIDsRequestParams(BaseModel):
     metadataDate: Optional[date] = None
-    departmentIds: Optional[str] = None  # или можно использовать List[int] с кастомным валидатором
+    departmentIds: Optional[str] = None  

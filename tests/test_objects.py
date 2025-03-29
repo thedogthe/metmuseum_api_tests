@@ -12,7 +12,7 @@ def api_client():
     return MetMuseumApiClient()
 
 def test_get_object_by_id(api_client):
-    # Тест получения объекта по существующему ID
+    """Тест получения объекта по существующему ID"""
     response = api_client.get_object(437133)
     assert response.status_code == 200
     
@@ -22,7 +22,7 @@ def test_get_object_by_id(api_client):
     assert art_object.artistDisplayName
 
 def test_get_nonexistent_object(api_client):
-    # Тест обработки несуществующего ID
+    """Тест обработки несуществующего ID"""
     try:
         response = api_client.get_object(999999999)
         pytest.fail("Expected 404 error but request succeeded")
@@ -31,7 +31,7 @@ def test_get_nonexistent_object(api_client):
         assert "Not Found" in str(e)
 
 def test_object_data_structure(api_client):
-    # Тест структуры данных объекта
+    """Тест структуры данных объекта"""
     response = api_client.get_object(45734)
     art_object = ArtObject(**response.json())
     
@@ -71,7 +71,6 @@ def test_objects_request_params_validation():
 
 def test_empty_response(api_client):
     """Тест обработки пустого ответа"""
-    # Имитируем пустой ответ (в реальности нужно использовать моки)
     empty_data = {"total": 0, "objectIDs": []}
     objects = ObjectIDsResponse(**empty_data)
     
