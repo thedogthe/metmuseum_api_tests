@@ -2,8 +2,8 @@
 import pytest
 from metmuseum_api_tests.utils.api_client import MetMuseumApiClient
 from models.object import ArtObject
-from models.objects import ObjectIDsResponse
 from pydantic import HttpUrl
+import requests 
 @pytest.fixture
 def api_client():
     return MetMuseumApiClient()
@@ -20,8 +20,12 @@ def test_get_object_by_id(api_client):
 
 def test_get_nonexistent_object(api_client):
     # Тест обработки несуществующего ID
-    response = api_client.get_object(999999999)
-    assert response.status_code == 404
+    try:
+        response = api_client.get_object(999999999)
+        pytest.fail("Expected 404 error but request succeeded")
+    except requests.exceptions.HTTPError as e:
+        assert e.response.status_code == 404
+        assert "Not Found" in str(e)
 
 def test_object_data_structure(api_client):
     # Тест структуры данных объекта
@@ -30,7 +34,6 @@ def test_object_data_structure(api_client):
     
     assert isinstance(art_object.objectID, int)
     assert isinstance(art_object.isHighlight, bool)
-    # Измененная проверка для primaryImage:
     assert art_object.primaryImage is None or isinstance(art_object.primaryImage, HttpUrl)
-    # Аналогично для primaryImageSmall:
     assert art_object.primaryImageSmall is None or isinstance(art_object.primaryImageSmall, HttpUrl)
+
