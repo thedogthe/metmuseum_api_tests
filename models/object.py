@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, HttpUrl, field_validator
 
 
 class Constituent(BaseModel):
@@ -89,3 +89,9 @@ class ArtObject(BaseModel):
     objectWikidata_URL: Optional[HttpUrl] = None
     isTimelineWork: bool
     GalleryNumber: Optional[str] = None
+
+    @field_validator('primaryImage', 'primaryImageSmall', mode='before')
+    def empty_str_to_none(cls, v):
+        if v == "":
+            return None
+        return v

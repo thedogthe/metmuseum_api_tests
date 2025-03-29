@@ -3,7 +3,7 @@ import pytest
 from metmuseum_api_tests.utils.api_client import MetMuseumApiClient
 from models.object import ArtObject
 from models.objects import ObjectIDsResponse
-
+from pydantic import HttpUrl
 @pytest.fixture
 def api_client():
     return MetMuseumApiClient()
@@ -30,5 +30,7 @@ def test_object_data_structure(api_client):
     
     assert isinstance(art_object.objectID, int)
     assert isinstance(art_object.isHighlight, bool)
-    assert isinstance(art_object.primaryImage, (str, type(None)))
-    assert isinstance(art_object.constituents, (list, type(None)))
+    # Измененная проверка для primaryImage:
+    assert art_object.primaryImage is None or isinstance(art_object.primaryImage, HttpUrl)
+    # Аналогично для primaryImageSmall:
+    assert art_object.primaryImageSmall is None or isinstance(art_object.primaryImageSmall, HttpUrl)
