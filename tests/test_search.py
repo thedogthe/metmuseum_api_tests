@@ -35,7 +35,7 @@ class TestSearch:
                     name="Результаты поиска",
                     attachment_type=allure.attachment_type.TEXT
                 )
-                assert all(isinstance(obj_id, int) for obj_id in search_result.objectIDs[:10]
+                assert all(isinstance(obj_id, int) for obj_id in search_result.objectIDs[:10])
 
     @allure.title("Параметризованный тест разных поисковых терминов")
     @allure.story("Основные сценарии поиска")
