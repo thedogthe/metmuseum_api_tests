@@ -12,7 +12,7 @@
 
 ```bash
 git clone https://github.com/thedogthe/metmuseum_api_tests.git
-cd metmuseum-api-tests
+cd metmuseum_api_tests
 poetry install
 poetry shell
 ```
