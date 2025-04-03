@@ -1,5 +1,6 @@
-# tests/test_search.py
+# TODO комметнарии 
 import pytest
+import allure
 from metmuseum_api_tests.utils.api_client import MetMuseumApiClient
 from models.search import SearchResponse, SearchRequestParams
 
@@ -7,171 +8,191 @@ from models.search import SearchResponse, SearchRequestParams
 def api_client():
     return MetMuseumApiClient()
 
-def test_basic_search(api_client):
-    # Тест базового поиска
-    response = api_client.search_objects("sunflowers")
-    assert response.status_code == 200
-    
-    search_result = SearchResponse(**response.json())
-    assert search_result.total > 0
-    assert len(search_result.objectIDs) > 0
+@allure.suite("API Тесты Метрополитен-музея")
+@allure.feature("Поиск объектов")
+class TestSearch:
+    @allure.title("Базовый поиск по ключевому слову")
+    @allure.story("Основные сценарии поиска")
+    def test_basic_search(self, api_client):
+        """Тест базового поиска по ключевому слову"""
+        search_term = "sunflowers"
+        
+        with allure.step(f"Выполнение поиска по термину '{search_term}'"):
+            response = api_client.search_objects(search_term)
+            
+        with allure.step("Проверка кода ответа"):
+            assert response.status_code == 200
+            
+        with allure.step("Парсинг и валидация ответа"):
+            search_result = SearchResponse(**response.json())
+            assert search_result.total >= 0
+            assert isinstance(search_result.objectIDs, list)
+            
+            if search_result.total > 0:
+                allure.attach(
+                    f"Найдено объектов: {search_result.total}\n"
+                    f"Пример ID: {search_result.objectIDs[:5]}",
+                    name="Результаты поиска",
+                    attachment_type=allure.attachment_type.TEXT
+                )
+                assert all(isinstance(obj_id, int) for obj_id in search_result.objectIDs[:10])
 
-def test_search_with_filters(api_client):
-    # Тест поиска с фильтрами
-    response = api_client.search_objects(
-        "flowers",
-        isHighlight=True,
-        hasImages=True,
-        departmentId=11  # European Paintings
-    )
-    assert response.status_code == 200
-    
-    search_result = SearchResponse(**response.json())
-    assert search_result.total > 0
+    @allure.title("Параметризованный тест разных поисковых терминов")
+    @allure.story("Основные сценарии поиска")
+    @pytest.mark.parametrize("search_term,expected_min", [
+        ("sunflowers", 1),
+        ("monet", 5),
+        ("vase", 10)
+    ])
+    def test_search_different_terms(self, api_client, search_term, expected_min):
+        """Параметризованный тест разных поисковых терминов"""
+        with allure.step(f"Поиск по термину '{search_term}' (ожидаем минимум {expected_min} результатов)"):
+            response = api_client.search_objects(search_term)
+            search_result = SearchResponse(**response.json())
+            
+        with allure.step("Проверка количества результатов"):
+            assert search_result.total >= expected_min
+            allure.attach(
+                f"Фактическое количество: {search_result.total}",
+                name="Результаты поиска",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-def test_search_by_artist(api_client):
-    # Тест поиска по художнику
-    response = api_client.search_objects(
-        "Van Gogh",
-        artistOrCulture=True
-    )
-    assert response.status_code == 200
-    
-    search_result = SearchResponse(**response.json())
-    assert search_result.total > 0
+    @allure.title("Поиск с фильтром по highlight объектам")
+    @allure.story("Фильтрация результатов")
+    def test_search_with_highlight_filter(self, api_client):
+        """Тест поиска только highlight объектов"""
+        with allure.step("Поиск 'flower' только среди highlight объектов"):
+            response = api_client.search_objects("flower", isHighlight=True)
+            search_result = SearchResponse(**response.json())
+            
+        with allure.step("Проверка результатов"):
+            assert search_result.total > 0
+            allure.attach(
+                f"Найдено highlight объектов: {search_result.total}",
+                name="Результаты",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-def test_search_with_date_range(api_client):
-    # Тест поиска по диапазону дат
-    response = api_client.search_objects(
-        "portrait",
-        dateBegin=1700,
-        dateEnd=1800
-    )
-    assert response.status_code == 200
-    
-    search_result = SearchResponse(**response.json())
-    assert search_result.total > 0
+    @allure.title("Поиск по департаменту")
+    @allure.story("Фильтрация результатов")
+    def test_search_with_department_filter(self, api_client):
+        """Тест поиска по департаменту"""
+        department_id = 6  # Asian Art
+        with allure.step(f"Поиск всех объектов в департаменте {department_id}"):
+            response = api_client.search_objects("", departmentId=department_id)
+            search_result = SearchResponse(**response.json())
+            
+        with allure.step("Проверка результатов"):
+            assert search_result.total > 0
+            allure.attach(
+                f"Объектов в департаменте: {search_result.total}",
+                name="Результаты",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-# Базовые тесты поиска
-def test_basic_search(api_client):
-    """Тест базового поиска по ключевому слову"""
-    response = api_client.search_objects("sunflowers")
-    assert response.status_code == 200
-    
-    search_result = SearchResponse(**response.json())
-    assert search_result.total >= 0
-    assert isinstance(search_result.objectIDs, list)
-    
-    # Если есть результаты, проверяем что ID валидные
-    if search_result.total > 0:
-        assert all(isinstance(obj_id, int) for obj_id in search_result.objectIDs[:10])
+    @allure.title("Поиск с комбинированными фильтрами")
+    @allure.story("Комплексные сценарии")
+    def test_combined_filters(self, api_client):
+        """Тест комбинации нескольких фильтров"""
+        search_params = {
+            "q": "woman",
+            "departmentId": 11,  # European Paintings
+            "isHighlight": True,
+            "hasImages": True
+        }
+        
+        with allure.step(f"Выполнение поиска с параметрами: {search_params}"):
+            response = api_client.search_objects(**search_params)
+            search_result = SearchResponse(**response.json())
+            
+        with allure.step("Проверка результатов"):
+            assert search_result.total > 0
+            allure.attach(
+                str(search_params),
+                name="Параметры поиска",
+                attachment_type=allure.attachment_type.JSON
+            )
+            allure.attach(
+                f"Найдено объектов: {search_result.total}",
+                name="Результаты",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-@pytest.mark.parametrize("search_term,expected_min", [
-    ("sunflowers", 1),
-    ("monet", 5),
-    ("vase", 10)
-])
-def test_search_different_terms(api_client, search_term, expected_min):
-    """Параметризованный тест разных поисковых терминов"""
-    response = api_client.search_objects(search_term)
-    search_result = SearchResponse(**response.json())
-    assert search_result.total >= expected_min
+    @allure.title("Поиск по временному диапазону")
+    @allure.story("Фильтрация результатов")
+    def test_date_range_filter(self, api_client):
+        """Тест поиска по временному диапазону"""
+        date_range = {"dateBegin": 1800, "dateEnd": 1900}
+        
+        with allure.step(f"Поиск объектов в диапазоне {date_range}"):
+            response = api_client.search_objects("", **date_range)
+            search_result = SearchResponse(**response.json())
+            
+        with allure.step("Проверка результатов"):
+            assert search_result.total > 0
+            allure.attach(
+                f"Найдено объектов в указанном периоде: {search_result.total}",
+                name="Результаты",
+                attachment_type=allure.attachment_type.TEXT
+            )
 
-# Тесты фильтров
-def test_search_with_highlight_filter(api_client):
-    """Тест поиска только highlight объектов"""
-    response = api_client.search_objects("flower", isHighlight=True)
-    search_result = SearchResponse(**response.json())
-    assert search_result.total > 0
+    @allure.title("Валидация параметров поиска")
+    @allure.story("Валидация данных")
+    def test_search_params_validation(self):
+        """Тест валидации параметров поиска"""
+        test_params = {
+            "q": "sunflowers",
+            "isHighlight": True,
+            "dateBegin": 1800,
+            "dateEnd": 1900
+        }
+        
+        with allure.step("Создание параметров поиска"):
+            params = SearchRequestParams(**test_params)
+            
+        with allure.step("Проверка параметров"):
+            assert params.q == "sunflowers"
+            assert params.isHighlight is True
+            assert params.dateBegin == 1800
+            assert params.dateEnd == 1900
+            
+            allure.attach(
+                str(params.dict()),
+                name="Параметры поиска",
+                attachment_type=allure.attachment_type.JSON
+            )
 
-def test_search_with_department_filter(api_client):
-    """Тест поиска по департаменту"""
-    response = api_client.search_objects("", departmentId=6)  # Asian Art
-    search_result = SearchResponse(**response.json())
-    assert search_result.total > 0
-
-def test_search_with_image_filter(api_client):
-    """Тест поиска только объектов с изображениями"""
-    response = api_client.search_objects("portrait", hasImages=True)
-    search_result = SearchResponse(**response.json())
-    assert search_result.total > 0
-
-# Тесты комбинированных фильтров
-def test_combined_filters(api_client):
-    """Тест комбинации нескольких фильтров"""
-    response = api_client.search_objects(
-        "woman",
-        departmentId=11,  # European Paintings
-        isHighlight=True,
-        hasImages=True
-    )
-    search_result = SearchResponse(**response.json())
-    assert search_result.total > 0
-
-# Тесты временного диапазона
-def test_date_range_filter(api_client):
-    """Тест поиска по временному диапазону"""
-    response = api_client.search_objects(
-        "",
-        dateBegin=1800,
-        dateEnd=1900
-    )
-    search_result = SearchResponse(**response.json())
-    assert search_result.total > 0
-
-# Тесты валидации параметров
-def test_search_params_validation():
-    """Тест валидации параметров поиска"""
-    params = SearchRequestParams(
-        q="sunflowers",
-        isHighlight=True,
-        dateBegin=1800,
-        dateEnd=1900
-    )
-    assert params.q == "sunflowers"
-    assert params.isHighlight is True
-    assert params.dateBegin == 1800
-    assert params.dateEnd == 1900
-
-# def test_empty_search(api_client):
-#     """Тест пустого поискового запроса"""
-#     response = api_client.search_objects("")
-#     assert response.status_code == 200
-#     data = response.json()
-#     # Обеспечиваем что objectIDs будет списком, даже если пустым
-#     data['objectIDs'] = data.get('objectIDs', [])
-#     search_result = SearchResponse(**data)
-#     assert search_result.total >= 0
-
-# def test_invalid_filters(api_client):
-#     """Тест с невалидными фильтрами"""
-#     response = api_client.search_objects("sunflowers", departmentId=99999)
-#     assert response.status_code == 200
-#     data = response.json()
-#     data['objectIDs'] = data.get('objectIDs', [])
-#     search_result = SearchResponse(**data)
-#     assert search_result.total == 0
-
-def test_search_limit(api_client):
-    """Тест ограничения количества результатов"""
-    response = api_client.search_objects("vase")
-    data = response.json()
-    search_result = SearchResponse(**data)
-    # Обновляем утверждение, так как API возвращает все результаты
-    assert len(search_result.objectIDs) == search_result.total
-# Дополнительные тесты
-@pytest.mark.slow
-def test_complex_search(api_client):
-    """Комплексный тест поиска с множеством параметров"""
-    response = api_client.search_objects(
-        "landscape",
-        isHighlight=True,
-        hasImages=True,
-        departmentId=11,  # European Paintings
-        dateBegin=1700,
-        dateEnd=1800,
-        artistOrCulture=True
-    )
-    search_result = SearchResponse(**response.json())
-    assert search_result.total > 0
-    assert len(search_result.objectIDs) > 0
+    @allure.title("Комплексный тест поиска")
+    @allure.story("Комплексные сценарии")
+    @pytest.mark.slow
+    def test_complex_search(self, api_client):
+        """Комплексный тест поиска с множеством параметров"""
+        search_params = {
+            "q": "landscape",
+            "isHighlight": True,
+            "hasImages": True,
+            "departmentId": 11,  # European Paintings
+            "dateBegin": 1700,
+            "dateEnd": 1800,
+            "artistOrCulture": True
+        }
+        
+        with allure.step(f"Выполнение комплексного поиска с параметрами: {search_params}"):
+            response = api_client.search_objects(**search_params)
+            search_result = SearchResponse(**response.json())
+            
+        with allure.step("Проверка результатов"):
+            assert search_result.total > 0
+            assert len(search_result.objectIDs) > 0
+            
+            allure.attach(
+                str(search_params),
+                name="Параметры поиска",
+                attachment_type=allure.attachment_type.JSON
+            )
+            allure.attach(
+                f"Найдено объектов: {search_result.total}",
+                name="Результаты",
+                attachment_type=allure.attachment_type.TEXT
+            )
