@@ -1,12 +1,14 @@
-# TODO комметнарии 
+# TODO комметнарии
 import pytest
 import allure
 from metmuseum_api_tests.utils.api_client import MetMuseumApiClient
 from models.search import SearchResponse, SearchRequestParams
 
+
 @pytest.fixture
 def api_client():
     return MetMuseumApiClient()
+
 
 @allure.suite("API Тесты Метрополитен-музея")
 @allure.feature("Поиск объектов")
@@ -16,18 +18,18 @@ class TestSearch:
     def test_basic_search(self, api_client):
         """Тест базового поиска по ключевому слову"""
         search_term = "sunflowers"
-        
+
         with allure.step(f"Выполнение поиска по термину '{search_term}'"):
             response = api_client.search_objects(search_term)
-            
+
         with allure.step("Проверка кода ответа"):
             assert response.status_code == 200
-            
+
         with allure.step("Парсинг и валидация ответа"):
             search_result = SearchResponse(**response.json())
             assert search_result.total >= 0
             assert isinstance(search_result.objectIDs, list)
-            
+
             if search_result.total > 0:
                 allure.attach(
                     f"Найдено объектов: {search_result.total}\n"
@@ -49,7 +51,7 @@ class TestSearch:
         with allure.step(f"Поиск по термину '{search_term}' (ожидаем минимум {expected_min} результатов)"):
             response = api_client.search_objects(search_term)
             search_result = SearchResponse(**response.json())
-            
+
         with allure.step("Проверка количества результатов"):
             assert search_result.total >= expected_min
             allure.attach(
@@ -65,7 +67,7 @@ class TestSearch:
         with allure.step("Поиск 'flower' только среди highlight объектов"):
             response = api_client.search_objects("flower", isHighlight=True)
             search_result = SearchResponse(**response.json())
-            
+
         with allure.step("Проверка результатов"):
             assert search_result.total > 0
             allure.attach(
@@ -82,7 +84,7 @@ class TestSearch:
         with allure.step(f"Поиск всех объектов в департаменте {department_id}"):
             response = api_client.search_objects("", departmentId=department_id)
             search_result = SearchResponse(**response.json())
-            
+
         with allure.step("Проверка результатов"):
             assert search_result.total > 0
             allure.attach(
@@ -96,16 +98,16 @@ class TestSearch:
     def test_combined_filters(self, api_client):
         """Тест комбинации нескольких фильтров"""
         search_params = {
-            "q": "woman",
+            "query": "woman",
             "departmentId": 11,  # European Paintings
             "isHighlight": True,
             "hasImages": True
         }
-        
+
         with allure.step(f"Выполнение поиска с параметрами: {search_params}"):
             response = api_client.search_objects(**search_params)
             search_result = SearchResponse(**response.json())
-            
+
         with allure.step("Проверка результатов"):
             assert search_result.total > 0
             allure.attach(
@@ -124,11 +126,11 @@ class TestSearch:
     def test_date_range_filter(self, api_client):
         """Тест поиска по временному диапазону"""
         date_range = {"dateBegin": 1800, "dateEnd": 1900}
-        
+
         with allure.step(f"Поиск объектов в диапазоне {date_range}"):
             response = api_client.search_objects("", **date_range)
             search_result = SearchResponse(**response.json())
-            
+
         with allure.step("Проверка результатов"):
             assert search_result.total > 0
             allure.attach(
@@ -147,16 +149,16 @@ class TestSearch:
             "dateBegin": 1800,
             "dateEnd": 1900
         }
-        
+
         with allure.step("Создание параметров поиска"):
             params = SearchRequestParams(**test_params)
-            
+
         with allure.step("Проверка параметров"):
             assert params.q == "sunflowers"
             assert params.isHighlight is True
             assert params.dateBegin == 1800
             assert params.dateEnd == 1900
-            
+
             allure.attach(
                 str(params.dict()),
                 name="Параметры поиска",
@@ -169,7 +171,7 @@ class TestSearch:
     def test_complex_search(self, api_client):
         """Комплексный тест поиска с множеством параметров"""
         search_params = {
-            "q": "landscape",
+            "query": "landscape",
             "isHighlight": True,
             "hasImages": True,
             "departmentId": 11,  # European Paintings
@@ -177,15 +179,15 @@ class TestSearch:
             "dateEnd": 1800,
             "artistOrCulture": True
         }
-        
+
         with allure.step(f"Выполнение комплексного поиска с параметрами: {search_params}"):
             response = api_client.search_objects(**search_params)
             search_result = SearchResponse(**response.json())
-            
+
         with allure.step("Проверка результатов"):
             assert search_result.total > 0
             assert len(search_result.objectIDs) > 0
-            
+
             allure.attach(
                 str(search_params),
                 name="Параметры поиска",
