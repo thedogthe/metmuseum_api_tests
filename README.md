@@ -60,4 +60,4 @@ pytest-asyncio: для работы с асинхронными тестами (
 
 ## TODO
 
-Add test
+Add test and docs
